@@ -416,7 +416,6 @@ removeSuggestion() {
         }, 300);
     });
     
-    // Auto remove after 30 seconds
     setTimeout(() => {
         if (suggestion.parentNode) {
             suggestion.style.animation = 'fadeOutSlideDown 0.3s ease forwards';
@@ -424,7 +423,7 @@ removeSuggestion() {
                 if (suggestion.parentNode) suggestion.remove();
             }, 300);
         }
-    }, 10000);
+    }, 100000);
     
 }, 0);
     }
