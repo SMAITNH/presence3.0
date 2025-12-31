@@ -53,8 +53,11 @@
 
     <!-- Dropdown Menu -->
     <div id="dropdown-menu" class="dropdown-menu">
-        <div class="dropdown-item" data-value="one-page">One Page</div>
-        <div class="dropdown-item" data-value="two-page">Two Pages</div>
+    <div class="dropdown-item" data-value="one-page">One Page</div>
+    <div class="dropdown-item" data-value="two-page">Two Pages</div>
+    <div class="dropdown-item" data-value="three-page">Three Pages</div>
+    <div class="dropdown-item" data-value="four-page">Four Pages</div>
+    <div class="dropdown-item" data-value="five-page">Five Pages</div>
 <!-- <div class="dropdown-item" id="change-org-item">
     Change Organization >
 </div> -->
@@ -1280,16 +1283,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ... rest of your existing code
 });
-// Complete JavaScript for index.html
-        
-// Complete JavaScript for index.html
 
+// Complete JavaScript for index.html
 document.addEventListener('DOMContentLoaded', () => {
     console.log('index.html: DOM loaded');
     
     const tableBody = document.getElementById('namesTableBody');
     const form = document.getElementById('namesForm');
-    const maxRows = 40; // Total names for two pages
+    const maxRows = 100; // Total names for five pages
     const leftIcon = document.getElementById('leftIcon');
     const rightIcon = document.getElementById('rightIcon');
     const toggleLabel = document.getElementById('toggleLabel');
@@ -1299,8 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let saveTimeout;
     let currentPage = localStorage.getItem('currentPage') || '1';
-    let isSecondPage = currentPage === '2';
-    let displayMode = localStorage.getItem('displayMode') || 'two-page'; // 'one-page' or 'two-page'
+    let displayMode = localStorage.getItem('displayMode') || 'two-page';
     let activeInputElement = null; // Track active input element
 
     // Initialize the view
@@ -1320,78 +1320,101 @@ document.addEventListener('DOMContentLoaded', () => {
         populateTable();
     }
 
-    // Update display mode (one-page vs two-page)
     function updateDisplayMode() {
-        const onePageItem = document.querySelector('[data-value="one-page"]');
-        const twoPageItem = document.querySelector('[data-value="two-page"]');
+        const items = ['one-page', 'two-page', 'three-page', 'four-page', 'five-page'];
         
         // Update active state in dropdown
-        if (onePageItem && twoPageItem) {
-            onePageItem.classList.toggle('active', displayMode === 'one-page');
-            twoPageItem.classList.toggle('active', displayMode === 'two-page');
-        }
+        items.forEach(item => {
+            const element = document.querySelector(`[data-value="${item}"]`);
+            if (element) {
+                element.classList.toggle('active', displayMode === item);
+            }
+        });
         
         // Show/hide page toggle based on mode
         const positionToggleSection = document.querySelector('.position-toggle-section');
         if (positionToggleSection) {
-            positionToggleSection.style.display = displayMode === 'two-page' ? 'flex' : 'none';
+            positionToggleSection.style.display = displayMode === 'one-page' ? 'none' : 'flex';
         }
         
+        // Reset to page 1 when changing mode
+        currentPage = '1';
+        localStorage.setItem('currentPage', currentPage);
         localStorage.setItem('displayMode', displayMode);
     }
 
-    // Update the view based on current page
     function updateView() {
         const positionToggleSection = document.querySelector('.position-toggle-section');
         
-        if (displayMode === 'two-page') {
-            if (isSecondPage) {
-                leftIcon.classList.add('active');
-                leftIcon.classList.remove('inactive');
-                
-                rightIcon.classList.add('inactive');
-                rightIcon.classList.remove('active');
-                
-                toggleLabel.textContent = 'Page 2';
-                headerFieldsContainer.classList.add('hidden');
-            } else {
+        // Calculate total pages based on mode
+        let totalPages = 1;
+        switch(displayMode) {
+            case 'one-page': totalPages = 1; break;
+            case 'two-page': totalPages = 2; break;
+            case 'three-page': totalPages = 3; break;
+            case 'four-page': totalPages = 4; break;
+            case 'five-page': totalPages = 5; break;
+        }
+        
+        if (displayMode === 'one-page') {
+            // One page mode - always show header fields and only 20 names
+            headerFieldsContainer.classList.remove('hidden');
+            toggleLabel.textContent = 'Names 1-20';
+            leftIcon.classList.remove('active', 'inactive');
+            rightIcon.classList.remove('active', 'inactive');
+            
+            // Hide toggle in one-page mode
+            if (positionToggleSection) {
+                positionToggleSection.style.display = 'none';
+            }
+        } else {
+            // Multi-page mode
+            const isFirstPage = currentPage === '1';
+            const isLastPage = parseInt(currentPage) === totalPages;
+            
+            if (isFirstPage) {
                 leftIcon.classList.add('inactive');
                 leftIcon.classList.remove('active');
                 
                 rightIcon.classList.add('active');
                 rightIcon.classList.remove('inactive');
                 
-                toggleLabel.textContent = 'Page 1';
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
                 headerFieldsContainer.classList.remove('hidden');
+            } else if (isLastPage) {
+                // Last page
+                leftIcon.classList.add('active');
+                leftIcon.classList.remove('inactive');
+                
+                rightIcon.classList.add('inactive');
+                rightIcon.classList.remove('active');
+                
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+                headerFieldsContainer.classList.add('hidden');
+            } else {
+                // Middle pages
+                leftIcon.classList.add('active');
+                leftIcon.classList.remove('inactive');
+                
+                rightIcon.classList.add('active');
+                rightIcon.classList.remove('inactive');
+                
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+                headerFieldsContainer.classList.add('hidden');
             }
             
-            currentPage = isSecondPage ? '2' : '1';
-            localStorage.setItem('currentPage', currentPage);
-            
-            // Show toggle in two-page mode
+            // Show toggle in multi-page mode
             if (positionToggleSection) {
                 positionToggleSection.style.display = 'flex';
-            }
-        } else {
-            // One page mode - always show header fields and only 20 names
-            headerFieldsContainer.classList.remove('hidden');
-            toggleLabel.textContent = 'Names 1-20';
-            leftIcon.classList.remove('active');
-            rightIcon.classList.remove('active');
-            
-            // Hide toggle in one-page mode
-            if (positionToggleSection) {
-                positionToggleSection.style.display = 'none';
             }
         }
     }
 
-    // Function to populate the table with input fields
     function populateTable() {
         tableBody.innerHTML = '';
         let savedNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
         
-        // FIX: Always ensure we have exactly maxRows (36) names in the array
+        // Ensure we have exactly maxRows names in the array
         if (savedNames.length < maxRows) {
             savedNames = [...savedNames, ...Array(maxRows - savedNames.length).fill('')];
         } else if (savedNames.length > maxRows) {
@@ -1401,15 +1424,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let startIndex, endIndex, displayOffset;
         
         if (displayMode === 'one-page') {
-            // Show only 16 names in one page
+            // Show only 20 names in one page
             startIndex = 0;
-            endIndex = 18; // Only 18 names in one-page mode
+            endIndex = 20;
             displayOffset = 1;
         } else {
-            // Two-page mode - original behavior
-            startIndex = isSecondPage ? 20 : 0;
-            endIndex = isSecondPage ? 40 : 20;
-            displayOffset = isSecondPage ? 21 : 1;
+            // Multi-page mode - calculate based on current page
+            const pageNumber = parseInt(currentPage) - 1; // 0-based
+            startIndex = pageNumber * 20; // 20 names per page
+            endIndex = startIndex + 20;
+            displayOffset = startIndex + 1;
+        }
+        
+        // Limit endIndex to maxRows
+        if (endIndex > maxRows) {
+            endIndex = maxRows;
         }
         
         for (let i = startIndex; i < endIndex; i++) {
@@ -1426,10 +1455,10 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.appendChild(row);
         }
         
-        console.log('index.html: Table populated for mode', displayMode, 'showing names', displayOffset, 'to', (endIndex - startIndex) + displayOffset - 1);
+        console.log('index.html: Table populated for mode', displayMode, 'page', currentPage, 'showing names', displayOffset, 'to', (endIndex - startIndex) + displayOffset - 1);
         
-        // Only populate titles and info if we're on first page or one-page mode
-        if (!isSecondPage || displayMode === 'one-page') {
+        // Only populate titles and info if we're on first page
+        if (currentPage === '1') {
             const savedTitles = JSON.parse(localStorage.getItem('reportTitles')) || [];
             document.getElementById('title1').value = savedTitles[0] || "";
             document.getElementById('title2').value = savedTitles[1] || "";
@@ -1480,7 +1509,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', () => {
                 const value = item.getAttribute('data-value');
-                if (value === 'one-page' || value === 'two-page') {
+                const validModes = ['one-page', 'two-page', 'three-page', 'four-page', 'five-page'];
+                
+                if (validModes.includes(value)) {
                     displayMode = value;
                     updateDisplayMode();
                     updateView();
@@ -1491,7 +1522,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelector('.dropdown-overlay').style.display = 'none';
                     
                     // Dispatch display mode change event
-                    window.dispatchEvent(new CustomEvent('displayModeChange', { detail: { mode: displayMode } }));
+                    window.dispatchEvent(new CustomEvent('displayModeChange', { 
+                        detail: { 
+                            mode: displayMode,
+                            page: currentPage 
+                        } 
+                    }));
                 }
             });
         });
@@ -1515,30 +1551,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event listeners for toggle icons (only in two-page mode)
+    // Event listeners for toggle icons (only in multi-page mode)
     leftIcon.addEventListener('click', () => {
-        if (displayMode === 'two-page') {
-            isSecondPage = false;
-            updateView();
-            populateTable();
-            // Sync with report.html if it's open
-            window.dispatchEvent(new CustomEvent('syncPageChange', { detail: { page: 1 } }));
+        if (displayMode !== 'one-page') {
+            const currentPageNum = parseInt(currentPage);
+            if (currentPageNum > 1) {
+                currentPage = (currentPageNum - 1).toString();
+                localStorage.setItem('currentPage', currentPage);
+                updateView();
+                populateTable();
+                // Sync with report.html if it's open
+                window.dispatchEvent(new CustomEvent('syncPageChange', { 
+                    detail: { 
+                        page: parseInt(currentPage),
+                        mode: displayMode 
+                    } 
+                }));
+            }
         }
     });
 
     rightIcon.addEventListener('click', () => {
-        if (displayMode === 'two-page') {
-            isSecondPage = true;
-            updateView();
-            populateTable();
-            // Sync with report.html if it's open
-            window.dispatchEvent(new CustomEvent('syncPageChange', { detail: { page: 2 } }));
+        if (displayMode !== 'one-page') {
+            // Calculate total pages based on mode
+            let totalPages = 1;
+            switch(displayMode) {
+                case 'two-page': totalPages = 2; break;
+                case 'three-page': totalPages = 3; break;
+                case 'four-page': totalPages = 4; break;
+                case 'five-page': totalPages = 5; break;
+            }
+            
+            const currentPageNum = parseInt(currentPage);
+            if (currentPageNum < totalPages) {
+                currentPage = (currentPageNum + 1).toString();
+                localStorage.setItem('currentPage', currentPage);
+                updateView();
+                populateTable();
+                // Sync with report.html if it's open
+                window.dispatchEvent(new CustomEvent('syncPageChange', { 
+                    detail: { 
+                        page: parseInt(currentPage),
+                        mode: displayMode 
+                    } 
+                }));
+            }
         }
     });
 
     // Improved auto-save function that doesn't close keyboard
     function autoSave() {
-        // Save data without re-rendering the entire table
         saveDataWithoutRerender();
     }
     
@@ -1547,7 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveTimeout = setTimeout(autoSave, 500);
     }
     
-    // FIXED: Function to save data without re-rendering (to prevent keyboard close)
+    // Function to save data without re-rendering
     function saveDataWithoutRerender() {
         // Get all name inputs and update the saved array
         const nameInputs = document.querySelectorAll('.name-input');
@@ -1561,7 +1623,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Always save titles and info from the DOM (they exist even when hidden)
+        // Always save titles and info from the DOM
         const titles = [
             document.getElementById('title1').value.trim(),
             document.getElementById('title2').value.trim(),
@@ -1614,8 +1676,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for sync events from report.html
     window.addEventListener('syncPageChange', (event) => {
-        if (displayMode === 'two-page') {
-            isSecondPage = event.detail.page === 2;
+        if (displayMode !== 'one-page') {
+            currentPage = event.detail.page.toString();
+            localStorage.setItem('currentPage', currentPage);
             updateView();
             populateTable();
         }
@@ -1632,9 +1695,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for storage events (when other tabs update data)
     window.addEventListener('storage', (event) => {
-        if (event.key === 'currentPage' && displayMode === 'two-page') {
+        if (event.key === 'currentPage') {
             const newPage = localStorage.getItem('currentPage');
-            isSecondPage = newPage === '2';
+            currentPage = newPage;
             updateView();
             populateTable();
         } else if (event.key === 'attendanceNames' || event.key === 'reportTitles' || event.key === 'attendanceInfo') {
@@ -1691,7 +1754,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('=== DEBUG DATA ===');
         console.log('Total names:', names.length);
         console.log('Names 1-20:', names.slice(0, 20));
-        console.log('Names 21-40:', names.slice(21, 40));
+        console.log('Names 21-40:', names.slice(20, 40));
+        console.log('Names 41-60:', names.slice(40, 60));
+        console.log('Names 61-80:', names.slice(60, 80));
+        console.log('Names 81-100:', names.slice(80, 100));
         console.log('Display mode:', displayMode);
         console.log('Current page:', currentPage);
         console.log('Active input:', activeInputElement);
@@ -1884,6 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Current organization:', localStorage.getItem('selectedOrganization'));
     }
 });
+
 // Quick organization color switcher
 const orgColors = {
     'AMI': {
@@ -1941,6 +2008,7 @@ window.addEventListener('organizationChanged', (e) => {
         applyOrgColors(e.detail.org);
     }
 });
+
 // Password protection for each organization
 const orgPasswords = {
     'AMI': 'ami27',
@@ -2487,8 +2555,6 @@ window.applyOrgColors = function(org) {
     }
 };
 
-// ===================== FIREBASE INTEGRATION FOR INDEX.HTML =====================
-
 // Firebase auto-save function
 function firebaseAutoSave(dataType, data) {
     if (window.dbManager) {
@@ -2692,6 +2758,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
     }, 1500);
 });
+
 // Initialize Firebase integration for index.html
 document.addEventListener('DOMContentLoaded', () => {
     // ... existing code ...
@@ -2732,7 +2799,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-// Di bagian JavaScript index.html, tambahkan:
 
 // Real-time sync handlers
 window.addEventListener('firebaseNamesUpdate', (event) => {
@@ -2905,7 +2971,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setupRealtimeMonitor();
     }, 3000);
 });
-// Di bagian JavaScript index.html, tambahkan:
 
 // Firebase real-time handlers
 window.addEventListener('namesUpdated', (event) => {
@@ -2992,10 +3057,7 @@ window.saveDataWithoutRerender = function() {
     }
 };
 
-// ======================
 // FORCE PASSWORD FOR AMI
-// ======================
-
 // Function untuk handle modal organisasi awal
 function initializeOrganizationSelection() {
     const orgModal = document.getElementById('orgModal');
@@ -3123,7 +3185,7 @@ setTimeout(() => {
         console.log("🗄️ DB Manager Status:", window.dbManager.getSyncStatus());
     }
 }, 3000);
-    </script>
+</script>
     <!-- ORGANIZATION CHANGE MODAL -->
 <div id="orgChangeModal" class="modal org-change-modal">
     <div class="modal-content org-change-modal-content">
