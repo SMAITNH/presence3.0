@@ -395,10 +395,7 @@ if (typeof document !== 'undefined') {
                     `;
                     notification.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 16px;">
-                                cloud_done
-                            </span>
-                            <span>Connected to Firebase Cloud</span>
+                            <span>Connected</span>
                         </div>
                     `;
                     document.body.appendChild(notification);
