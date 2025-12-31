@@ -137,6 +137,31 @@
             --bronze: #CD7F32;
         }
 
+/* Prevent mobile browser from modifying input styles */
+.title-input, .info-input, .name-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-touch-callout: default;
+}
+
+/* Disable autocorrect styles */
+input[type="text"] {
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: inherit !important;
+}
+
+/* Prevent iOS from zooming on focus */
+@media screen and (max-width: 768px) {
+    .title-input, .info-input, .name-input {
+        font-size: 16px !important; /* Mencegah zoom iOS */
+    }
+}
+        
 /* === FIX UNTUK ORG MODAL - TAMBAHKAN DI SEMUA FILE === */
 #orgModal {
     display: none !important;
