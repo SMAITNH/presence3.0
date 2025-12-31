@@ -953,3 +953,259 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 2000);
 });
+
+// Fungsi untuk mengimpor nama-nama ke Firebase
+async function importNamesToFirebase() {
+    try {
+        // Pastikan user sudah login
+        if (!window.firebaseAuth || !window.firebaseAuth.getCurrentUser()) {
+            alert('Silakan login terlebih dahulu untuk menyimpan ke cloud.');
+            return;
+        }
+
+        // Daftar nama yang akan diimpor
+        const namesToImport = [
+            "Ahsanurrizqi",
+            "Azmina Tsania Mafaza",
+            "Alimul Haq Al Fatih",
+            "Alifah Hasna Setyawan",
+            "Aqila Hanin Najiyya",
+            "Farid Abrar Ramadhan",
+            "Zalfan Almundzir",
+            "Athiya Khaerunnisa",
+            "Alma Ryzqya Ramadhani",
+            "Fauzan Rijalul Jaddid",
+            "Hasna Rifaya Nafiah",
+            "Ahmad Ali Nafis Mujahir",
+            "Muhammad Faisal Iqbal",
+            "Najwa Nur Azizah",
+            "Aulia Devina Omantin",
+            "Fathir Hanifan Romadloni",
+            "Tsabita Al Firdaus",
+            "Syafiq Aufa Asykari",
+            "Yasqi Azka Argani",
+            "Ahmad Althaf Rizqillah",
+            "Naufal Ariq Saputra",
+            "Fachryza Zuhair Nabil Arrazaq",
+            "Fadhil Abdillah Ramadhan",
+            "Muhammad Fathrizkzein Zidane",
+            "Muhammad Muzdahir Syafiq",
+            "Aqila Adzkia",
+            "Aufa Nissa' Al Majidah",
+            "Faizah Mufidatun Azizah",
+            "Fanny Afnan Jannati",
+            "Zharifah Himmah Al Alyyah",
+            "Farah Asysan Syifa",
+            "Najwa Aqilla Janitra",
+            "Qanita Sharah Hafizhah",
+            "Zainab Asshabira",
+            "Afra Mufidah Riyadi",
+            "Nabila Tsabita Rahmania",
+            "Yusuf Azzam Hafi",
+            "Annisa Zulfa Salsabila",
+            "Fadly Maulana An-Nafi",
+            "Nidzar Hammam Ismath",
+            "Hidayat Nur Aziz",
+            "Muhammad Imanulhaq",
+            "Muhammad Tsaqib Hilmi A.",
+            "Naufal Ghoniyun Karim",
+            "Reyza Emirsyah Hidayat",
+            "Tsabit Abdussalam Akif N. S.",
+            "Azalia Rahma Nirmala Dewi",
+            "Najla Khairunnisa",
+            "Khansa Putri Risdianto",
+            "Arkani Kayla Khairunnisa",
+            "Ayesha Ahnaf Hammasyah",
+            "Khonza Adzkia",
+            "Chandrika Kania Damara",
+            "Aisya Nadira",
+            "Hasna Dzakia Salma K.",
+            "Kainuna Regita Khairunnisa",
+            "Zahratul Khoiriyyah",
+            "Sholiha Bilqis Trikurnia",
+            "Umar Fakhruddin Khairullah",
+            "Aisyah Mar'atus Sholikah",
+            "Maulana Ibnu Faiq",
+            "Zaky Zydan Ramtizi",
+            "Azzam Nur Tsabita Arif",
+            "Zufar Abdillah Tsaqif",
+            "Rais Hikari",
+            "Miftahuddin Ghoffar As Sidiq",
+            "Affan Rasyid Ilman",
+            "Rizqi Akhtar Putra Sunanda",
+            "Aderisti Maurelia Putri",
+            "Aliya Nuha Humaira Mushoffa",
+            "Nada Zaafarani Assyifa",
+            "Syarifah Nugraheningsih",
+            "Salwaa Alyaa' Prameshwari",
+            "Rofi Munajati",
+            "Keyla Nurkhasna Qoni'ah",
+            "Athaya Yasmin Althafunnisa",
+            "Khansa",
+            "Zalyani Niswatun Nafi'ah",
+            "Ikhtia Hauraya Annizar",
+            "Nisa'ul Akmaal G. M. N. L.",
+            "Hilya Nada Aufia",
+            "Syauqi Firdaus Fiiridhotillah",
+            "Alyaa Widya Arza Sentosa",
+            "Rafif Syauqi Nashrullah",
+            "Hanan Ahmad Mukhayyar",
+            "Zaidan Rais Altair",
+            "Rizqullah Jihada Muhsin",
+            "Andrew Shea",
+            "Ayyash Dhiyaulhaq Cunggin",
+            "Gaozhan Wiby Al-Karimi",
+            "Ba'ayu Febria Ristika",
+            "Fatimah Naura Ulya",
+            "Haura Nada Tsabita",
+            "Nafisa Azka Armandriani",
+            "Rona Karima",
+            "Annisa Rahma Aji",
+            "Alya Dini Khoirunnisa",
+            "Hayan Hadi Gunjaya",
+            "Ibrahim Banu Atiro",
+            "Lathifah Lubna Azizah",
+            "Runaisha Afra Shofia A.",
+            "Luthfia Inafi Muthi'ah",
+            "Veisya Saffaina Sasongko"
+        ];
+
+        // Tampilkan loading
+        const importButton = document.getElementById('importNamesBtn');
+        if (importButton) {
+            importButton.innerHTML = '<span class="material-symbols-outlined">sync</span> Mengimpor...';
+            importButton.disabled = true;
+        }
+
+        // Get current organization
+        const organization = localStorage.getItem('selectedOrganization') || 'AMI';
+        const userId = window.firebaseAuth.getCurrentUser().uid;
+        
+        // Simpan ke Firebase Firestore
+        const db = firebase.firestore();
+        
+        // Buat batch untuk multiple writes
+        const batch = db.batch();
+        
+        // Simpan ke koleksi users/[userId]/organizations/[org]/attendanceNames
+        const userDocRef = db.collection('users').doc(userId)
+            .collection('organizations').doc(organization)
+            .collection('attendanceData').doc('names');
+        
+        batch.set(userDocRef, {
+            names: namesToImport,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            count: namesToImport.length,
+            importedAt: new Date().toISOString()
+        }, { merge: true });
+
+        // Simpan ke localStorage juga
+        localStorage.setItem('attendanceNames', JSON.stringify(namesToImport));
+        
+        // Commit batch
+        await batch.commit();
+        
+        // Update UI
+        if (typeof populateTable === 'function') {
+            populateTable();
+        }
+        
+        // Tampilkan notifikasi sukses
+        showNotification(`${namesToImport.length} nama berhasil diimpor ke Firebase!`, 'success');
+        
+        // Dispatch event untuk refresh halaman lain
+        window.dispatchEvent(new CustomEvent('namesUpdate'));
+        window.dispatchEvent(new CustomEvent('syncDataUpdate', {
+            detail: {
+                type: 'names',
+                data: namesToImport
+            }
+        }));
+        
+    } catch (error) {
+        console.error('Error importing names to Firebase:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        // Reset button
+        const importButton = document.getElementById('importNamesBtn');
+        if (importButton) {
+            importButton.innerHTML = '<span class="material-symbols-outlined">cloud_upload</span> Impor Nama ke Firebase';
+            importButton.disabled = false;
+        }
+    }
+}
+
+// Fungsi helper untuk notifikasi
+function showNotification(message, type = 'info') {
+    // Hapus notifikasi lama
+    document.querySelectorAll('.import-notification').forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `import-notification ${type}`;
+    notification.innerHTML = `
+        <span class="material-symbols-outlined" style="margin-right: 8px;">
+            ${type === 'success' ? 'check_circle' : 
+              type === 'error' ? 'error' : 
+              type === 'warning' ? 'warning' : 'info'}
+        </span>
+        <span>${message}</span>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        background: ${type === 'success' ? '#4CAF50' :
+                     type === 'error' ? '#f44336' :
+                     type === 'warning' ? '#FF9800' : '#2196F3'};
+        color: white;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) notification.remove();
+    }, 5000);
+}
+
+// Event listeners untuk tombol
+document.addEventListener('DOMContentLoaded', () => {
+    // Tombol import
+    const importBtn = document.getElementById('importNamesBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', importNamesToFirebase);
+    }
+    
+    // Tombol clear all
+    const clearBtn = document.getElementById('clearAllBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Apakah Anda yakin ingin menghapus semua nama?')) {
+                // Hapus dari localStorage
+                localStorage.removeItem('attendanceNames');
+                
+                // Hapus dari Firebase jika ada
+                if (window.dbManager) {
+                    window.dbManager.clearAllNames();
+                }
+                
+                // Refresh tabel
+                if (typeof populateTable === 'function') {
+                    populateTable();
+                }
+                
+                // Notifikasi
+                showNotification('Semua nama telah dihapus', 'success');
+            }
+        });
+    }
+});
