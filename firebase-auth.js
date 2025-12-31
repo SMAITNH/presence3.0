@@ -151,13 +151,6 @@ class FirebaseAuthSystem {
     suggestion.id = 'login-suggestion';
     suggestion.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; padding: 2px;">
-            <span class="material-symbols-outlined" style="font-size: 18px; color: #9ade24;">
-                cloud_upload
-            </span>
-            <div style="flex: 1;">
-                <div style="font-size: 13px; font-weight: 600; color: #333;">Login for Cloud Sync</div>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">Save signatures across all devices</div>
-            </div>
             <div style="display: flex; gap: 5px;">
                 <button id="direct-login-btn" style="padding: 6px 14px; background: #9ade24; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
                     Login
@@ -352,13 +345,6 @@ removeSuggestion() {
     suggestion.id = 'login-suggestion';
     suggestion.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="material-symbols-outlined" style="font-size: 18px; color: #9ade24;">
-                cloud_upload
-            </span>
-            <div style="flex: 1;">
-                <div style="font-size: 13px; font-weight: 600; color: #333;">Login for Cloud Sync</div>
-                <div style="font-size: 11px; color: #666; margin-top: 2px;">Save signatures across all devices</div>
-            </div>
             <div style="display: flex; gap: 5px;">
                 <button id="login-btn" style="padding: 6px 14px; background: var(--secondary); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
                     Login
