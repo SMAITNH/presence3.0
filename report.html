@@ -1225,8 +1225,11 @@ body.modal-open {
     
     <!-- Dropdown Menu -->
     <div id="dropdown-menu" class="dropdown-menu">
-        <div class="dropdown-item" data-value="one-page">One Page</div>
-        <div class="dropdown-item" data-value="two-page">Two Pages</div>
+    <div class="dropdown-item" data-value="one-page">One Page</div>
+    <div class="dropdown-item" data-value="two-page">Two Pages</div>
+    <div class="dropdown-item" data-value="three-page">Three Pages</div>
+    <div class="dropdown-item" data-value="four-page">Four Pages</div>
+    <div class="dropdown-item" data-value="five-page">Five Pages</div>
         <!-- Add this line inside #dropdown-menu in ALL 3 pages -->
 <!-- <div class="dropdown-item" id="change-org-item">
     Change Organization >
@@ -1301,553 +1304,633 @@ body.modal-open {
     
     <script>
         // Complete JavaScript for report.html
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('report.js: DOM loaded');
-            
-            const defaultTitles = [
-                "PRESENSI KEHADIRAN PESERTA",
-                "NAMA PROGRAM KERJA",
-                "MASA BAKTI TAHUN/TAHUN"
-            ];
-            
-            let currentPage = localStorage.getItem('currentPage') || '1';
-            let displayMode = localStorage.getItem('displayMode') || 'two-page';
-            let rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
+// Complete JavaScript for report.html
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('report.js: DOM loaded - UPDATED FOR MULTI-PAGE');
+    
+    const defaultTitles = [
+        "PRESENSI KEHADIRAN PESERTA",
+        "NAMA PROGRAM KERJA",
+        "MASA BAKTI TAHUN/TAHUN"
+    ];
+    
+    let currentPage = localStorage.getItem('currentPage') || '1';
+    let displayMode = localStorage.getItem('displayMode') || 'two-page';
+    let rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
 
-            // Page toggle functionality
-            const leftIcon = document.getElementById('reportLeftIcon');
-            const rightIcon = document.getElementById('reportRightIcon');
-            const toggleLabel = document.getElementById('reportToggleLabel');
-            const toggleSection = document.querySelector('.page-toggle-section');
-            const hamburgerMenu = document.getElementById('hamburger-menu');
-            const dropdownMenu = document.getElementById('dropdown-menu');
-            let isSecondPage = currentPage === '2';
-            
-            function updateActiveDropdownItem() {
-                document.querySelectorAll('.dropdown-item').forEach(item => {
-                    item.classList.remove('active');
-                    
-                    const value = item.getAttribute('data-value');
-                    if (value === displayMode) {
-                        item.classList.add('active');
-                    }
-                });
+    // Page toggle functionality
+    const leftIcon = document.getElementById('reportLeftIcon');
+    const rightIcon = document.getElementById('reportRightIcon');
+    const toggleLabel = document.getElementById('reportToggleLabel');
+    const toggleSection = document.querySelector('.page-toggle-section');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    
+    function updateActiveDropdownItem() {
+        const items = ['one-page', 'two-page', 'three-page', 'four-page', 'five-page'];
+        
+        // Update active state in dropdown
+        items.forEach(item => {
+            const element = document.querySelector(`[data-value="${item}"]`);
+            if (element) {
+                element.classList.toggle('active', displayMode === item);
             }
+        });
+    }
 
-            function updateReportView() {
-                if (displayMode === 'two-page') {
-                    if (isSecondPage) {
-                        leftIcon.classList.add('active');
-                        leftIcon.classList.remove('inactive');
-                        
-                        rightIcon.classList.add('inactive');
-rightIcon.classList.remove('active');
-                        toggleLabel.textContent = 'Page 2';
-                    } else {
-                        leftIcon.classList.add('inactive');
-leftIcon.classList.remove('active');
-rightIcon.classList.add('active');
-rightIcon.classList.remove('inactive');
-toggleLabel.textContent = 'Page 1';
-                    }
-                    
-                    currentPage = isSecondPage ? '2' : '1';
-                    localStorage.setItem('currentPage', currentPage);
-                    
-                    // Show toggle in two-page mode
-                    if (toggleSection) {
-                        toggleSection.style.display = 'flex';
-                    }
-                } else {
-                    // One page mode - hide the toggle
-                    toggleLabel.textContent = 'All Names';
-                    leftIcon.classList.remove('active', 'inactive');
-                    rightIcon.classList.remove('active', 'inactive');
-                    
-                        toggleSection.style.display = 'none';
-                    
-                }
+    function updateReportView() {
+        // Calculate total pages based on mode
+        let totalPages = 1;
+        switch(displayMode) {
+            case 'one-page': totalPages = 1; break;
+            case 'two-page': totalPages = 2; break;
+            case 'three-page': totalPages = 3; break;
+            case 'four-page': totalPages = 4; break;
+            case 'five-page': totalPages = 5; break;
+        }
+        
+        if (displayMode === 'one-page') {
+            // One page mode - hide the toggle
+            toggleLabel.textContent = 'All Names';
+            leftIcon.classList.remove('active', 'inactive');
+            rightIcon.classList.remove('active', 'inactive');
+            
+            toggleSection.style.display = 'none';
+            
+        } else {
+            // Multi-page mode
+            const isFirstPage = currentPage === '1';
+            const isLastPage = parseInt(currentPage) === totalPages;
+            
+            if (isFirstPage) {
+                leftIcon.classList.add('inactive');
+                leftIcon.classList.remove('active');
                 
-                // Update visibility based on page and display mode
-                updateVisibility();
-                generateTableRows();
-                updateActiveDropdownItem();
-            }
-
-            // Update element visibility based on page and display mode
-            function updateVisibility() {
-                const header = document.querySelector('.header');
-                const information = document.querySelector('.information');
-                const informations = document.querySelector('.informations');
+                rightIcon.classList.add('active');
+                rightIcon.classList.remove('inactive');
                 
-                if (displayMode === 'one-page') {
-                    // One page mode: show everything
-                    header.style.display = 'block';
-                    information.style.display = 'block';
-                    informations.style.display = 'block';
-                    
-                    // Show all header titles
-                    document.querySelectorAll('.header h4').forEach(h4 => {
-                        h4.style.display = 'block';
-                    });
-                } else {
-                    // Two page mode
-                    if (isSecondPage) {
-                        // Page 2 (19-36): Hide titles and info, show image and bottom info
-                        header.style.display = 'block'; // Keep header for logo
-                        document.querySelectorAll('.header h4').forEach(h4 => {
-                            h4.style.display = 'none'; // Hide titles but keep logo
-                        });
-                        information.style.display = 'none'; // Hide waktu, tempat, keterangan
-                        informations.style.display = 'block'; // Show bottom keterangan
-                    } else {
-                        // Page 1 (1-18): Show everything except bottom info
-                        header.style.display = 'block';
-                        document.querySelectorAll('.header h4').forEach(h4 => {
-                            h4.style.display = 'block'; // Show titles
-                        });
-                        information.style.display = 'block'; // Show waktu, tempat, keterangan
-                        informations.style.display = 'none'; // Hide bottom keterangan
-                    }
-                }
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+            } else if (isLastPage) {
+                // Last page
+                leftIcon.classList.add('active');
+                leftIcon.classList.remove('inactive');
+                
+                rightIcon.classList.add('inactive');
+                rightIcon.classList.remove('active');
+                
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+            } else {
+                // Middle pages
+                leftIcon.classList.add('active');
+                leftIcon.classList.remove('inactive');
+                
+                rightIcon.classList.add('active');
+                rightIcon.classList.remove('inactive');
+                
+                toggleLabel.textContent = `Page ${currentPage} of ${totalPages}`;
             }
+            
+            toggleSection.style.display = 'flex';
+        }
+        
+        // Update visibility based on page and display mode
+        updateVisibility();
+        generateTableRows();
+        updateActiveDropdownItem();
+    }
 
-            // Initialize fixed toggle position on left side
-            function initializeTogglePosition() {
-                if (toggleSection) {
-                    // Set fixed position on left side
-                    toggleSection.style.position = 'fixed';
-                    toggleSection.style.top = '15px'; // Same as buttons
-                    toggleSection.style.left = '20px'; // Left side
-                    toggleSection.style.right = 'auto';
-                    toggleSection.style.transform = 'none';
-                    toggleSection.style.zIndex = '1001';
-                    toggleSection.style.background = 'transparent';
-                    toggleSection.style.padding = '0';
-                    toggleSection.style.borderRadius = '5px';
-                    toggleSection.style.boxShadow = 'none';
-                    toggleSection.style.display = displayMode === 'two-page' ? 'flex' : 'none';
-                    toggleSection.style.marginTop = '0';
-                    
-                    // Style the toggle container
-                    const toggleContainer = toggleSection.querySelector('.toggle-container');
-                    if (toggleContainer) {
-                        toggleContainer.style.margin = '0';
-                        toggleContainer.style.justifyContent = 'flex-start';
-                        toggleContainer.style.background = 'transparent';
-                        toggleContainer.style.padding = '10px';
-                        toggleContainer.style.borderRadius = '5px';
-                        toggleContainer.style.gap = '10px';
-                    }
-                }
-            }
-
-            // Hamburger menu functionality
-            function setupHamburgerMenu() {
-                // Toggle dropdown menu
-                hamburgerMenu.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isVisible = dropdownMenu.style.display === 'block';
-                    dropdownMenu.style.display = isVisible ? 'none' : 'block';
-                    
-                    // Create overlay if it doesn't exist
-                    let overlay = document.querySelector('.dropdown-overlay');
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.className = 'dropdown-overlay';
-                        document.body.appendChild(overlay);
-                    }
-                    overlay.style.display = isVisible ? 'none' : 'block';
-                });
-
-                // Handle dropdown item clicks
-                document.querySelectorAll('.dropdown-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const value = item.getAttribute('data-value');
-                        if (value === 'one-page' || value === 'two-page') {
-                            displayMode = value;
-                            localStorage.setItem('displayMode', displayMode);
-                            updateReportView();
-                            
-                            // Close dropdown
-                            dropdownMenu.style.display = 'none';
-                            document.querySelector('.dropdown-overlay').style.display = 'none';
-                            
-                            // Dispatch display mode change event
-                            window.dispatchEvent(new CustomEvent('displayModeChange', { detail: { mode: displayMode } }));
-                        }
-                    });
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!hamburgerMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                        dropdownMenu.style.display = 'none';
-                        const overlay = document.querySelector('.dropdown-overlay');
-                        if (overlay) overlay.style.display = 'none';
-                    }
-                });
-
-                // Close dropdown on escape key
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        dropdownMenu.style.display = 'none';
-                        const overlay = document.querySelector('.dropdown-overlay');
-                        if (overlay) overlay.style.display = 'none';
-                    }
-                });
-            }
-
-            // Initialize button positions
-            function initializeButtonPositions() {
-                // Hamburger menu position (right side)
-                if (hamburgerMenu) {
-                    hamburgerMenu.style.position = 'fixed';
-                    hamburgerMenu.style.top = '15px';
-                    hamburgerMenu.style.right = '20px';
-                    hamburgerMenu.style.zIndex = '1001';
-                }
-
-                // Download button position (left of hamburger)
-                const downloadButton = document.getElementById('download-paper');
-                if (downloadButton) {
-                    downloadButton.style.position = 'fixed';
-                    downloadButton.style.top = '15px';
-                    downloadButton.style.right = '70px'; // Position to left of hamburger
-                    downloadButton.style.zIndex = '1001';
-                }
-
-                // Dropdown menu position
-                if (dropdownMenu) {
-                    dropdownMenu.style.position = 'fixed';
-                    dropdownMenu.style.top = '60px';
-                    dropdownMenu.style.right = '20px';
-                    dropdownMenu.style.zIndex = '1002';
-                }
-            }
-
-            // Event listeners for toggle icons
-            leftIcon.addEventListener('click', () => {
-                if (displayMode === 'two-page') {
-                    isSecondPage = false;
-                    updateReportView();
-                    window.dispatchEvent(new CustomEvent('syncPageChange', { detail: { page: 1 } }));
-                }
+    // Update element visibility based on page and display mode
+    function updateVisibility() {
+        const header = document.querySelector('.header');
+        const information = document.querySelector('.information');
+        const informations = document.querySelector('.informations');
+        
+        if (displayMode === 'one-page') {
+            // One page mode: show everything
+            header.style.display = 'block';
+            information.style.display = 'block';
+            informations.style.display = 'block';
+            
+            // Show all header titles
+            document.querySelectorAll('.header h4').forEach(h4 => {
+                h4.style.display = 'block';
             });
+        } else {
+            // Multi page mode
+            if (currentPage === '1') {
+                // Page 1 (1-20): Show everything except bottom info
+                header.style.display = 'block';
+                document.querySelectorAll('.header h4').forEach(h4 => {
+                    h4.style.display = 'block'; // Show titles
+                });
+                information.style.display = 'block'; // Show waktu, tempat, keterangan
+                informations.style.display = 'none'; // Hide bottom keterangan
+            } else {
+                // Other pages: Hide titles and info, show image and bottom info
+                header.style.display = 'block'; // Keep header for logo
+                document.querySelectorAll('.header h4').forEach(h4 => {
+                    h4.style.display = 'none'; // Hide titles but keep logo
+                });
+                information.style.display = 'none'; // Hide waktu, tempat, keterangan
+                informations.style.display = 'block'; // Show bottom keterangan
+            }
+        }
+    }
 
-            rightIcon.addEventListener('click', () => {
-                if (displayMode === 'two-page') {
-                    isSecondPage = true;
-                    updateReportView();
-                    window.dispatchEvent(new CustomEvent('syncPageChange', { detail: { page: 2 } }));
-                }
-            });
+    // Initialize fixed toggle position on left side
+    function initializeTogglePosition() {
+        if (toggleSection) {
+            // Set fixed position on left side
+            toggleSection.style.position = 'fixed';
+            toggleSection.style.top = '15px'; // Same as buttons
+            toggleSection.style.left = '20px'; // Left side
+            toggleSection.style.right = 'auto';
+            toggleSection.style.transform = 'none';
+            toggleSection.style.zIndex = '1001';
+            toggleSection.style.background = 'transparent';
+            toggleSection.style.padding = '0';
+            toggleSection.style.borderRadius = '5px';
+            toggleSection.style.boxShadow = 'none';
+            toggleSection.style.display = displayMode === 'one-page' ? 'none' : 'flex';
+            toggleSection.style.marginTop = '0';
             
-            // Load titles from localStorage and apply to report
-            function loadTitles() {
-                const savedTitles = JSON.parse(localStorage.getItem('reportTitles')) || [];
-                const title1 = document.getElementById('report-title1');
-                const title2 = document.getElementById('report-title2');
-                const title3 = document.getElementById('report-title3');
-                
-                if (title1) title1.textContent = savedTitles[0] || defaultTitles[0];
-                if (title2) title2.textContent = savedTitles[1] || defaultTitles[1];
-                if (title3) title3.textContent = savedTitles[2] || defaultTitles[2];
-                
-                console.log('report.js: Titles loaded:', savedTitles);
+            // Style the toggle container
+            const toggleContainer = toggleSection.querySelector('.toggle-container');
+            if (toggleContainer) {
+                toggleContainer.style.margin = '0';
+                toggleContainer.style.justifyContent = 'flex-start';
+                toggleContainer.style.background = 'transparent';
+                toggleContainer.style.padding = '10px';
+                toggleContainer.style.borderRadius = '5px';
+                toggleContainer.style.gap = '10px';
+            }
+        }
+    }
+
+    // Hamburger menu functionality
+    function setupHamburgerMenu() {
+        // Toggle dropdown menu
+        hamburgerMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = dropdownMenu.style.display === 'block';
+            dropdownMenu.style.display = isVisible ? 'none' : 'block';
+            
+            // Create overlay if it doesn't exist
+            let overlay = document.querySelector('.dropdown-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'dropdown-overlay';
+                document.body.appendChild(overlay);
+            }
+            overlay.style.display = isVisible ? 'none' : 'block';
+        });
+
+        // Handle dropdown item clicks
+document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const value = item.getAttribute('data-value');
+        const validModes = ['one-page', 'two-page', 'three-page', 'four-page', 'five-page'];
+        
+        if (validModes.includes(value)) {
+            // RESET KE HALAMAN 1 KETIKA MODE BERUBAH
+            currentPage = '1';
+            localStorage.setItem('currentPage', currentPage);
+            
+            displayMode = value;
+            localStorage.setItem('displayMode', displayMode);
+            updateReportView();
+            
+            // Close dropdown
+            dropdownMenu.style.display = 'none';
+            document.querySelector('.dropdown-overlay').style.display = 'none';
+            
+            // Dispatch display mode change event
+            window.dispatchEvent(new CustomEvent('displayModeChange', { 
+                detail: { 
+                    mode: displayMode,
+                    page: parseInt(currentPage) // Kirim halaman 1
+                } 
+            }));
+        }
+    });
+});
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!hamburgerMenu.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.style.display = 'none';
+                const overlay = document.querySelector('.dropdown-overlay');
+                if (overlay) overlay.style.display = 'none';
+            }
+        });
+
+        // Close dropdown on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dropdownMenu.style.display = 'none';
+                const overlay = document.querySelector('.dropdown-overlay');
+                if (overlay) overlay.style.display = 'none';
+            }
+        });
+    }
+
+    // Initialize button positions
+    function initializeButtonPositions() {
+        // Hamburger menu position (right side)
+        if (hamburgerMenu) {
+            hamburgerMenu.style.position = 'fixed';
+            hamburgerMenu.style.top = '15px';
+            hamburgerMenu.style.right = '20px';
+            hamburgerMenu.style.zIndex = '1001';
+        }
+
+        // Download button position (left of hamburger)
+        const downloadButton = document.getElementById('download-paper');
+        if (downloadButton) {
+            downloadButton.style.position = 'fixed';
+            downloadButton.style.top = '15px';
+            downloadButton.style.right = '70px'; // Position to left of hamburger
+            downloadButton.style.zIndex = '1001';
+        }
+
+        // Dropdown menu position
+        if (dropdownMenu) {
+            dropdownMenu.style.position = 'fixed';
+            dropdownMenu.style.top = '60px';
+            dropdownMenu.style.right = '20px';
+            dropdownMenu.style.zIndex = '1002';
+        }
+    }
+
+    // Event listeners for toggle icons
+    leftIcon.addEventListener('click', () => {
+        if (displayMode !== 'one-page') {
+            const currentPageNum = parseInt(currentPage);
+            if (currentPageNum > 1) {
+                currentPage = (currentPageNum - 1).toString();
+                localStorage.setItem('currentPage', currentPage);
+                updateReportView();
+                window.dispatchEvent(new CustomEvent('syncPageChange', { 
+                    detail: { 
+                        page: parseInt(currentPage),
+                        mode: displayMode 
+                    } 
+                }));
+            }
+        }
+    });
+
+    rightIcon.addEventListener('click', () => {
+        if (displayMode !== 'one-page') {
+            // Calculate total pages based on mode
+            let totalPages = 1;
+            switch(displayMode) {
+                case 'two-page': totalPages = 2; break;
+                case 'three-page': totalPages = 3; break;
+                case 'four-page': totalPages = 4; break;
+                case 'five-page': totalPages = 5; break;
             }
             
-            // Load waktu, tempat, keterangan from localStorage
-            function loadAttendanceInfo() {
-                const savedInfo = JSON.parse(localStorage.getItem('attendanceInfo')) || {};
-                const infoSection = document.querySelector('.information');
-                
-                if (infoSection) {
-                    infoSection.innerHTML = `
-                        <p>Waktu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${savedInfo.waktu || ""}</p> 
-                        <p>Tempat&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${savedInfo.tempat || ""}</p>
-                        <p>Keterangan&nbsp;&nbsp;&nbsp;: ${savedInfo.keterangan || ""}</p>
-                    `;
-                }
-                console.log('report.js: Attendance info loaded:', savedInfo);
+            const currentPageNum = parseInt(currentPage);
+            if (currentPageNum < totalPages) {
+                currentPage = (currentPageNum + 1).toString();
+                localStorage.setItem('currentPage', currentPage);
+                updateReportView();
+                window.dispatchEvent(new CustomEvent('syncPageChange', { 
+                    detail: { 
+                        page: parseInt(currentPage),
+                        mode: displayMode 
+                    } 
+                }));
+            }
+        }
+    });
+    
+    // Load titles from localStorage and apply to report
+    function loadTitles() {
+        const savedTitles = JSON.parse(localStorage.getItem('reportTitles')) || [];
+        const title1 = document.getElementById('report-title1');
+        const title2 = document.getElementById('report-title2');
+        const title3 = document.getElementById('report-title3');
+        
+        if (title1) title1.textContent = savedTitles[0] || defaultTitles[0];
+        if (title2) title2.textContent = savedTitles[1] || defaultTitles[1];
+        if (title3) title3.textContent = savedTitles[2] || defaultTitles[2];
+        
+        console.log('report.js: Titles loaded:', savedTitles);
+    }
+    
+    // Load waktu, tempat, keterangan from localStorage
+    function loadAttendanceInfo() {
+        const savedInfo = JSON.parse(localStorage.getItem('attendanceInfo')) || {};
+        const infoSection = document.querySelector('.information');
+        
+        if (infoSection) {
+            infoSection.innerHTML = `
+                <p>Waktu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${savedInfo.waktu || ""}</p> 
+                <p>Tempat&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${savedInfo.tempat || ""}</p>
+                <p>Keterangan&nbsp;&nbsp;&nbsp;: ${savedInfo.keterangan || ""}</p>
+            `;
+        }
+        console.log('report.js: Attendance info loaded:', savedInfo);
+    }
+    
+    // Generate table rows for current page - UPDATED FOR MULTI-PAGE
+    function generateTableRows() {
+        const tbody = document.getElementById('report-table-body');
+        tbody.innerHTML = '';
+        
+        // Check if there are any names to display
+        if (rowHeaderNames.length === 0) {
+            console.log('report.js: No names found in localStorage, table will be empty');
+            createEmptyTableStructure();
+            return;
+        }
+        
+        let startIndex, endIndex, displayOffset;
+        
+        if (displayMode === 'one-page') {
+            // One page mode: show only 20 names
+            startIndex = 0;
+            endIndex = 20;
+            displayOffset = 1;
+        } else {
+            // Multi-page mode: calculate based on current page
+            const pageNumber = parseInt(currentPage) - 1; // 0-based
+            startIndex = pageNumber * 20; // 20 names per page
+            endIndex = startIndex + 20;
+            displayOffset = startIndex + 1;
+        }
+        
+        // Limit endIndex to array length
+        if (endIndex > rowHeaderNames.length) {
+            endIndex = rowHeaderNames.length;
+        }
+        
+        const pageNames = rowHeaderNames.slice(startIndex, endIndex);
+        
+        // Check if current page has any names
+        const hasNamesOnPage = pageNames.some(name => name && name.trim() !== '');
+        if (!hasNamesOnPage) {
+            console.log('report.js: No names on current page', currentPage);
+            createEmptyTableStructure();
+            return;
+        }
+        
+        for (let i = 0; i < pageNames.length; i += 2) {
+            // Skip empty rows at the end
+            if (!pageNames[i] && (!pageNames[i + 1] || pageNames[i + 1].trim() === '')) {
+                continue;
             }
             
-            // Generate table rows for current page
-            function generateTableRows() {
-                const tbody = document.getElementById('report-table-body');
-                tbody.innerHTML = '';
+            const actualIndex1 = startIndex + i;
+            const actualIndex2 = startIndex + i + 1;
+            const displayNumber1 = i + displayOffset;
+            const displayNumber2 = i + displayOffset + 1;
+            
+            const row1 = document.createElement('tr');
+            row1.innerHTML = `
+                <td>${displayNumber1}.</td>
+                <td>${pageNames[i] || ''}</td>
+                <td rowspan="2">
+                    <div class="signature-number">${displayNumber1}.</div>
+                    <div class="signature-wrapper">
+                        <div class="signature" data-name="${pageNames[i] || ''}"></div>
+                    </div>
+                </td>
+                <td rowspan="2">
+                    ${pageNames[i + 1] ? `<div class="signature-number">${displayNumber2}.</div>` : ''}
+                    <div class="signature-wrapper">
+                        <div class="signature" data-name="${pageNames[i + 1] || ''}"></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="keterangan-container">
+                        <span class="keterangan-number">${displayNumber1}.</span>
+                        <select class="keterangan" data-name="${pageNames[i] || ''}">
+                            <option value=""> </option>
+                            <option value="I">I</option>
+                            <option value="S">S</option>
+                            <option value="TK">TK</option>
+                        </select>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row1);
+            
+            if (pageNames[i + 1]) {
+                const row2 = document.createElement('tr');
+                row2.innerHTML = `
+                    <td>${displayNumber2}.</td>
+                    <td>${pageNames[i + 1] || ''}</td>
+                    <td>
+                        <div class="keterangan-container">
+                            <span class="keterangan-number">${displayNumber2}.</span>
+                            <select class="keterangan" data-name="${pageNames[i + 1] || ''}">
+                                <option value=""> </option>
+                                <option value="I">I</option>
+                                <option value="S">S</option>
+                                <option value="TK">TK</option>
+                            </select>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row2);
+            }
+        }
+        
+        attachEventListeners();
+        loadSignaturesAndKeterangan(); // Load signatures after generating rows
+        console.log('report.js: Table generated for page', currentPage, 'mode', displayMode, 'showing names', displayOffset, 'to', displayOffset + pageNames.length - 1);
+    }
+
+    // Create empty table structure for better visual appearance
+    function createEmptyTableStructure() {
+        const tbody = document.getElementById('report-table-body');
+        const isOnePage = displayMode === 'one-page';
+        let rowCount = 10; // Default 10 rows
+        
+        // Adjust row count based on mode
+        if (isOnePage) {
+            rowCount = 10; // 10 rows for 20 names
+        } else {
+            // For multi-page, always show 10 rows per page
+            rowCount = 10;
+        }
+        
+        for (let i = 0; i < rowCount; i++) {
+            let displayNumber1, displayNumber2;
+            
+            if (displayMode === 'one-page') {
+                displayNumber1 = (i * 2) + 1;
+                displayNumber2 = (i * 2) + 2;
+            } else {
+                const pageNumber = parseInt(currentPage) - 1;
+                displayNumber1 = (pageNumber * 20) + (i * 2) + 1;
+                displayNumber2 = (pageNumber * 20) + (i * 2) + 2;
+            }
+            
+            const row1 = document.createElement('tr');
+            row1.innerHTML = `
+                <td>${displayNumber1}.</td>
+                <td></td>
+                <td rowspan="2">
+                    <div class="signature-number">${displayNumber1}.</div>
+                    <div class="signature-wrapper">
+                        <div class="signature" data-name=""></div>
+                    </div>
+                </td>
+                <td rowspan="2">
+                    <div class="signature-number">${displayNumber2}.</div>
+                    <div class="signature-wrapper">
+                        <div class="signature" data-name=""></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="keterangan-container">
+                        <span class="keterangan-number">${displayNumber1}.</span>
+                        <select class="keterangan" data-name="">
+                            <option value=""> </option>
+                            <option value="I">I</option>
+                            <option value="S">S</option>
+                            <option value="TK">TK</option>
+                        </select>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row1);
+            
+            const row2 = document.createElement('tr');
+            row2.innerHTML = `
+                <td>${displayNumber2}.</td>
+                <td></td>
+                <td>
+                    <div class="keterangan-container">
+                        <span class="keterangan-number">${displayNumber2}.</span>
+                        <select class="keterangan" data-name="">
+                            <option value=""> </option>
+                            <option value="I">I</option>
+                            <option value="S">S</option>
+                            <option value="TK">TK</option>
+                        </select>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row2);
+        }
+        
+        attachEventListeners();
+        loadSignaturesAndKeterangan();
+    }
+    
+    // Set Indonesian date
+    function setDynamicDate() {
+        const dateDiv = document.getElementById('report-date');
+        const savedData = localStorage.getItem('tanggalPresensi');
+        
+        if (savedData) {
+            const dateObj = new Date(savedData);
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            dateDiv.textContent = `${days[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        } else {
+            const today = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            dateDiv.textContent = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+        }
+    }
+    
+    // Load signatures & keterangan from localStorage - FIXED VERSION
+    function loadSignaturesAndKeterangan() {
+        const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
+        console.log('report.js: Loading signatures from spreadsheetData:', Object.keys(data).length, 'entries found');
+        
+        document.querySelectorAll('.signature').forEach(div => {
+            const name = div.dataset.name;
+            if (!name || name.trim() === '') {
+                div.innerHTML = '';
+                return;
+            }
+            
+            console.log('report.js: Looking for signature for:', name);
+            
+            // DIRECT MATCH - check for exact name first
+            if (data[name] && data[name].image) {
+                console.log('report.js: Found exact signature match for:', name);
+                const img = document.createElement('img');
+                img.src = data[name].image;
+                img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain; display: block;';
+                img.alt = `Signature for ${name}`;
+                div.innerHTML = '';
+                div.appendChild(img);
+            } 
+            // CASE-INSENSITIVE MATCH - if exact match fails
+            else {
+                const normalizedName = name.toLowerCase().trim();
+                const matchingKey = Object.keys(data).find(key => 
+                    key.toLowerCase().trim() === normalizedName
+                );
                 
-                // Check if there are any names to display
-                if (rowHeaderNames.length === 0) {
-                    console.log('report.js: No names found in localStorage, table will be empty');
-                    createEmptyTableStructure();
-                    return;
-                }
-                
-                let startIndex, endIndex, displayOffset;
-                
-                if (displayMode === 'one-page') {
-                    // One page mode: show only 20 names
-                    startIndex = 0;
-                    endIndex = 18;
-                    displayOffset = 1;
+                if (matchingKey && data[matchingKey]?.image) {
+                    console.log('report.js: Found case-insensitive signature match for:', name, 'as', matchingKey);
+                    const img = document.createElement('img');
+                    img.src = data[matchingKey].image;
+                    img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain; display: block;';
+                    img.alt = `Signature for ${name}`;
+                    div.innerHTML = '';
+                    div.appendChild(img);
                 } else {
-                    // Two page mode: original behavior
-                    startIndex = isSecondPage ? 20 : 0;
-                    endIndex = isSecondPage ? 40 : 20;
-                    displayOffset = isSecondPage ? 21 : 1;
+                    console.log('report.js: No signature found for:', name);
+                    div.innerHTML = '';
                 }
-                
-                const pageNames = rowHeaderNames.slice(startIndex, endIndex);
-                
-                // Check if current page has any names
-                const hasNamesOnPage = pageNames.some(name => name && name.trim() !== '');
-                if (!hasNamesOnPage) {
-                    console.log('report.js: No names on current page', currentPage);
-                    createEmptyTableStructure();
-                    return;
-                }
-                
-                for (let i = 0; i < pageNames.length; i += 2) {
-                    // Skip empty rows at the end
-                    if (!pageNames[i] && (!pageNames[i + 1] || pageNames[i + 1].trim() === '')) {
-                        continue;
-                    }
-                    
-                    const actualIndex1 = startIndex + i;
-                    const actualIndex2 = startIndex + i + 1;
-                    const displayNumber1 = i + displayOffset;
-                    const displayNumber2 = i + displayOffset + 1;
-                    
-                    const row1 = document.createElement('tr');
-                    row1.innerHTML = `
-                        <td>${displayNumber1}.</td>
-                        <td>${pageNames[i] || ''}</td>
-                        <td rowspan="2">
-                            <div class="signature-number">${displayNumber1}.</div>
-                            <div class="signature-wrapper">
-                                <div class="signature" data-name="${pageNames[i] || ''}"></div>
-                            </div>
-                        </td>
-                        <td rowspan="2">
-                            ${pageNames[i + 1] ? `<div class="signature-number">${displayNumber2}.</div>` : ''}
-                            <div class="signature-wrapper">
-                                <div class="signature" data-name="${pageNames[i + 1] || ''}"></div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="keterangan-container">
-                                <span class="keterangan-number">${displayNumber1}.</span>
-                                <select class="keterangan" data-name="${pageNames[i] || ''}">
-                                    <option value=""> </option>
-                                    <option value="I">I</option>
-                                    <option value="S">S</option>
-                                    <option value="TK">TK</option>
-                                </select>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row1);
-                    
-                    if (pageNames[i + 1]) {
-                        const row2 = document.createElement('tr');
-                        row2.innerHTML = `
-                            <td>${displayNumber2}.</td>
-                            <td>${pageNames[i + 1] || ''}</td>
-                            <td>
-                                <div class="keterangan-container">
-                                    <span class="keterangan-number">${displayNumber2}.</span>
-                                    <select class="keterangan" data-name="${pageNames[i + 1] || ''}">
-                                        <option value=""> </option>
-                                        <option value="I">I</option>
-                                        <option value="S">S</option>
-                                        <option value="TK">TK</option>
-                                    </select>
-                                </div>
-                            </td>
-                        `;
-                        tbody.appendChild(row2);
-                    }
-                }
-                
-                attachEventListeners();
-                loadSignaturesAndKeterangan(); // Load signatures after generating rows
-                console.log('report.js: Table generated for page', currentPage, 'mode', displayMode, 'showing names', displayOffset, 'to', displayOffset + pageNames.length - 1);
             }
-
-            // Create empty table structure for better visual appearance
-            function createEmptyTableStructure() {
-                const tbody = document.getElementById('report-table-body');
-                const isOnePage = displayMode === 'one-page';
-                const rowCount = isOnePage ? 9 : 10;
-                
-                for (let i = 0; i < rowCount; i++) {
-                    const displayNumber1 = (isSecondPage && !isOnePage ? 21 : 1) + (i * 2);
-                    const displayNumber2 = displayNumber1 + 1;
-                    
-                    const row1 = document.createElement('tr');
-                    row1.innerHTML = `
-                        <td>${displayNumber1}.</td>
-                        <td></td>
-                        <td rowspan="2">
-                            <div class="signature-number">${displayNumber1}.</div>
-                            <div class="signature-wrapper">
-                                <div class="signature" data-name=""></div>
-                            </div>
-                        </td>
-                        <td rowspan="2">
-                            <div class="signature-number">${displayNumber2}.</div>
-                            <div class="signature-wrapper">
-                                <div class="signature" data-name=""></div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="keterangan-container">
-                                <span class="keterangan-number">${displayNumber1}.</span>
-                                <select class="keterangan" data-name="">
-                                    <option value=""> </option>
-                                    <option value="I">I</option>
-                                    <option value="S">S</option>
-                                    <option value="TK">TK</option>
-                                </select>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row1);
-                    
-                    const row2 = document.createElement('tr');
-                    row2.innerHTML = `
-                        <td>${displayNumber2}.</td>
-                        <td></td>
-                        <td>
-                            <div class="keterangan-container">
-                                <span class="keterangan-number">${displayNumber2}.</span>
-                                <select class="keterangan" data-name="">
-                                    <option value=""> </option>
-                                    <option value="I">I</option>
-                                    <option value="S">S</option>
-                                    <option value="TK">TK</option>
-                                </select>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row2);
-                }
-                
-                attachEventListeners();
-                loadSignaturesAndKeterangan();
+        });
+        
+        // Load keterangan with same matching logic
+        document.querySelectorAll('.keterangan').forEach(select => {
+            const name = select.dataset.name;
+            if (!name || name.trim() === '') {
+                select.value = '';
+                return;
             }
             
-            // Set Indonesian date
-            function setDynamicDate() {
-                const dateDiv = document.getElementById('report-date');
-                const savedData = localStorage.getItem('tanggalPresensi');
+            // Direct match
+            if (data[name] && data[name].keterangan) {
+                select.value = data[name].keterangan;
+            } 
+            // Case-insensitive match
+            else {
+                const normalizedName = name.toLowerCase().trim();
+                const matchingKey = Object.keys(data).find(key => 
+                    key.toLowerCase().trim() === normalizedName
+                );
                 
-                if (savedData) {
-                    const dateObj = new Date(savedData);
-const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
-const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-dateDiv.textContent = `${days[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-                }
-                
-                else {
-                    const today = new Date();
-const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
-const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-dateDiv.textContent = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+                if (matchingKey && data[matchingKey]?.keterangan) {
+                    select.value = data[matchingKey].keterangan;
+                } else {
+                    select.value = '';
                 }
             }
-            
-            // Load signatures & keterangan from localStorage - FIXED VERSION
-            function loadSignaturesAndKeterangan() {
-                const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
-                console.log('report.js: Loading signatures from spreadsheetData:', Object.keys(data).length, 'entries found');
-                
-                document.querySelectorAll('.signature').forEach(div => {
-                    const name = div.dataset.name;
-                    if (!name || name.trim() === '') {
-                        div.innerHTML = '';
-                        return;
-                    }
-                    
-                    console.log('report.js: Looking for signature for:', name);
-                    
-                    // DIRECT MATCH - check for exact name first
-                    if (data[name] && data[name].image) {
-                        console.log('report.js: Found exact signature match for:', name);
-                        const img = document.createElement('img');
-                        img.src = data[name].image;
-                        img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain; display: block;';
-                        img.alt = `Signature for ${name}`;
-                        div.innerHTML = '';
-                        div.appendChild(img);
-                    } 
-                    // CASE-INSENSITIVE MATCH - if exact match fails
-                    else {
-                        const normalizedName = name.toLowerCase().trim();
-                        const matchingKey = Object.keys(data).find(key => 
-                            key.toLowerCase().trim() === normalizedName
-                        );
-                        
-                        if (matchingKey && data[matchingKey]?.image) {
-                            console.log('report.js: Found case-insensitive signature match for:', name, 'as', matchingKey);
-                            const img = document.createElement('img');
-                            img.src = data[matchingKey].image;
-                            img.style.cssText = 'max-width:100%; max-height:100%; object-fit:contain; display: block;';
-                            img.alt = `Signature for ${name}`;
-                            div.innerHTML = '';
-                            div.appendChild(img);
-                        } else {
-                            console.log('report.js: No signature found for:', name);
-                            div.innerHTML = '';
-                        }
-                    }
-                });
-                
-                // Load keterangan with same matching logic
-                document.querySelectorAll('.keterangan').forEach(select => {
-                    const name = select.dataset.name;
-                    if (!name || name.trim() === '') {
-                        select.value = '';
-                        return;
-                    }
-                    
-                    // Direct match
-                    if (data[name] && data[name].keterangan) {
-                        select.value = data[name].keterangan;
-                    } 
-                    // Case-insensitive match
-                    else {
-                        const normalizedName = name.toLowerCase().trim();
-                        const matchingKey = Object.keys(data).find(key => 
-                            key.toLowerCase().trim() === normalizedName
-                        );
-                        
-                        if (matchingKey && data[matchingKey]?.keterangan) {
-                            select.value = data[matchingKey].keterangan;
-                        } else {
-                            select.value = '';
-                        }
-                    }
-                });
-                
-                updateSignatureIndicators();
+        });
+        
+        updateSignatureIndicators();
+    }
+    
+    // Update signature indicators (add has-signature class)
+    function updateSignatureIndicators() {
+        document.querySelectorAll('.signature-wrapper').forEach(wrapper => {
+            const signature = wrapper.querySelector('.signature');
+            const hasImage = signature.querySelector('img') !== null;
+            if (hasImage) {
+                wrapper.classList.add('has-signature');
+            } else {
+                wrapper.classList.remove('has-signature');
             }
-            
-            // Update signature indicators (add has-signature class)
-            function updateSignatureIndicators() {
-                document.querySelectorAll('.signature-wrapper').forEach(wrapper => {
-                    const signature = wrapper.querySelector('.signature');
-                    const hasImage = signature.querySelector('img') !== null;
-                    if (hasImage) {
-                        wrapper.classList.add('has-signature');
-                    } else {
-                        wrapper.classList.remove('has-signature');
-                    }
-                });
-            }
-            
-           // Modified delete signature function
+        });
+    }
+    
+   // Modified delete signature function
 async function deleteSignature(name) {
     const data = JSON.parse(localStorage.getItem('spreadsheetData') || '{}');
     const key = Object.keys(data).find(k => k.toLowerCase() === name.toLowerCase());
@@ -1974,7 +2057,7 @@ function downloadPaper() {
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
         
         // Generate filename
-        const pageSuffix = displayMode === 'one-page' ? '_full' : (currentPage === '2' ? '_page2' : '_page1');
+        const pageSuffix = displayMode === 'one-page' ? '_full' : `_page${currentPage}`;
         const modeSuffix = displayMode === 'one-page' ? '_single' : '_multi';
         const fileName = `Presensi_${new Date().toISOString().slice(0,10)}${modeSuffix}${pageSuffix}.pdf`;
         
@@ -1988,122 +2071,121 @@ function downloadPaper() {
     });
 }
             
-            // Attach click & change events
-            function attachEventListeners() {
-                // Signature click events - show delete confirmation
-                document.querySelectorAll('.signature-wrapper').forEach(wrapper => {
-                    wrapper.onclick = (e) => {
-                        e.stopPropagation();
-                        const signature = wrapper.querySelector('.signature');
-                        const name = signature.dataset.name;
-                        if (!name || name.trim() === '') return;
-                        
-                        // Check if signature has an image
-                        const hasImage = signature.querySelector('img') !== null;
-                        if (hasImage) {
-                            showDeleteModal(name);
-                        }
-                    };
-                });
+    // Attach click & change events
+    function attachEventListeners() {
+        // Signature click events - show delete confirmation
+        document.querySelectorAll('.signature-wrapper').forEach(wrapper => {
+            wrapper.onclick = (e) => {
+                e.stopPropagation();
+                const signature = wrapper.querySelector('.signature');
+                const name = signature.dataset.name;
+                if (!name || name.trim() === '') return;
                 
-                // Keterangan change events
-                document.querySelectorAll('.keterangan').forEach(select => {
-                    select.onchange = () => {
-                        const name = select.dataset.name;
-                        if (name && name.trim() !== '') {
-                            saveKeterangan(name, select.value);
-                        }
-                    };
-                });
-            }
-            
-            // Debug function to check signature data
-            function debugSignatureData() {
-                const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
-                console.log('=== SIGNATURE DEBUG INFO ===');
-                console.log('Total entries in spreadsheetData:', Object.keys(data).length);
-                console.log('All names with signatures:', Object.keys(data).filter(key => data[key]?.image));
-                console.log('All names in attendance:', JSON.parse(localStorage.getItem('attendanceNames')) || []);
-                console.log('=== END DEBUG ===');
-            }
-            
-            // Listen for sync events from index.html
-            window.addEventListener('syncPageChange', (event) => {
-                if (displayMode === 'two-page') {
-                    isSecondPage = event.detail.page === 2;
-                    currentPage = event.detail.page.toString();
-                    localStorage.setItem('currentPage', currentPage);
-                    updateReportView();
+                // Check if signature has an image
+                const hasImage = signature.querySelector('img') !== null;
+                if (hasImage) {
+                    showDeleteModal(name);
                 }
-            });
-
-            // Listen for display mode changes from index.html
-            window.addEventListener('displayModeChange', (event) => {
-                displayMode = event.detail.mode;
-                localStorage.setItem('displayMode', displayMode);
-                updateReportView();
-            });
-            
-            // Listen for signature saved events
-            window.addEventListener('signatureSaved', (event) => {
-                console.log('report.js: Signature saved event received for:', event.detail.name);
-                loadSignaturesAndKeterangan();
-            });
-            
-            // Listen for storage events (when other tabs update data)
-            window.addEventListener('storage', (event) => {
-                console.log('report.js: Storage event detected for key:', event.key);
-                if (event.key === 'currentPage') {
-                    const newPage = localStorage.getItem('currentPage');
-                    isSecondPage = newPage === '2';
-                    updateReportView();
-                } else if (event.key === 'displayMode') {
-                    displayMode = localStorage.getItem('displayMode') || 'two-page';
-                    updateReportView();
-                } else if (event.key === 'attendanceNames') {
-                    rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
-                    generateTableRows();
-                } else if (event.key === 'reportTitles' || event.key === 'attendanceInfo') {
-                    loadTitles();
-                    loadAttendanceInfo();
-                } else if (event.key === 'tanggalPresensi') {
-                    setDynamicDate();
-                } else if (event.key === 'spreadsheetData') {
-                    console.log('report.js: spreadsheetData updated, reloading signatures');
-                    loadSignaturesAndKeterangan();
-                }
-            });
-            
-            // Listen for names updates
-            window.addEventListener('namesUpdate', () => {
-                rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
-                generateTableRows();
-            });
-            
-            window.addEventListener('storageUpdate', () => {
-                console.log('report.js: storageUpdate event received');
-                loadSignaturesAndKeterangan();
-            });
-            
-            // Buttons
-            document.getElementById('download-paper')?.addEventListener('click', downloadPaper);
-            
-            // Initialize the application
-            console.log('report.js: Initializing application');
-            loadTitles();
-            loadAttendanceInfo();
-            setDynamicDate();
-            initializeTogglePosition();
-            initializeButtonPositions();
-            setupHamburgerMenu();
-            updateReportView();
-            updateActiveDropdownItem();
-            
-            // Make debug function available globally
-            window.debugSignatureData = debugSignatureData;
+            };
         });
         
-        // ORGANIZATION SELECTION – SHOW ONLY ONCE + DISABLE SCROLL
+        // Keterangan change events
+        document.querySelectorAll('.keterangan').forEach(select => {
+            select.onchange = () => {
+                const name = select.dataset.name;
+                if (name && name.trim() !== '') {
+                    saveKeterangan(name, select.value);
+                }
+            };
+        });
+    }
+    
+    // Debug function to check signature data
+    function debugSignatureData() {
+        const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
+        console.log('=== SIGNATURE DEBUG INFO ===');
+        console.log('Total entries in spreadsheetData:', Object.keys(data).length);
+        console.log('All names with signatures:', Object.keys(data).filter(key => data[key]?.image));
+        console.log('All names in attendance:', JSON.parse(localStorage.getItem('attendanceNames')) || []);
+        console.log('=== END DEBUG ===');
+    }
+    
+    // Listen for sync events from index.html - UPDATED
+    window.addEventListener('syncPageChange', (event) => {
+        if (displayMode !== 'one-page') {
+            currentPage = event.detail.page.toString();
+            localStorage.setItem('currentPage', currentPage);
+            updateReportView();
+        }
+    });
+
+    // Listen for display mode changes from index.html
+    window.addEventListener('displayModeChange', (event) => {
+        displayMode = event.detail.mode;
+        localStorage.setItem('displayMode', displayMode);
+        updateReportView();
+    });
+    
+    // Listen for signature saved events
+    window.addEventListener('signatureSaved', (event) => {
+        console.log('report.js: Signature saved event received for:', event.detail.name);
+        loadSignaturesAndKeterangan();
+    });
+    
+    // Listen for storage events (when other tabs update data)
+    window.addEventListener('storage', (event) => {
+        console.log('report.js: Storage event detected for key:', event.key);
+        if (event.key === 'currentPage') {
+            const newPage = localStorage.getItem('currentPage');
+            currentPage = newPage;
+            updateReportView();
+        } else if (event.key === 'displayMode') {
+            displayMode = localStorage.getItem('displayMode') || 'two-page';
+            updateReportView();
+        } else if (event.key === 'attendanceNames') {
+            rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
+            generateTableRows();
+        } else if (event.key === 'reportTitles' || event.key === 'attendanceInfo') {
+            loadTitles();
+            loadAttendanceInfo();
+        } else if (event.key === 'tanggalPresensi') {
+            setDynamicDate();
+        } else if (event.key === 'spreadsheetData') {
+            console.log('report.js: spreadsheetData updated, reloading signatures');
+            loadSignaturesAndKeterangan();
+        }
+    });
+    
+    // Listen for names updates
+    window.addEventListener('namesUpdate', () => {
+        rowHeaderNames = JSON.parse(localStorage.getItem('attendanceNames')) || [];
+        generateTableRows();
+    });
+    
+    window.addEventListener('storageUpdate', () => {
+        console.log('report.js: storageUpdate event received');
+        loadSignaturesAndKeterangan();
+    });
+    
+    // Buttons
+    document.getElementById('download-paper')?.addEventListener('click', downloadPaper);
+    
+    // Initialize the application
+    console.log('report.js: Initializing application');
+    loadTitles();
+    loadAttendanceInfo();
+    setDynamicDate();
+    initializeTogglePosition();
+    initializeButtonPositions();
+    setupHamburgerMenu();
+    updateReportView();
+    updateActiveDropdownItem();
+    
+    // Make debug function available globally
+    window.debugSignatureData = debugSignatureData;
+});
+
+// ORGANIZATION SELECTION – SHOW ONLY ONCE + DISABLE SCROLL
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('orgModal');
     const body = document.body;
@@ -2141,6 +2223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
 // Organization Change Functionality
 document.addEventListener('DOMContentLoaded', () => {
     const changeOrgItem = document.getElementById('change-org-item');
@@ -2314,6 +2397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Current organization:', localStorage.getItem('selectedOrganization'));
     }
 });
+
 // Quick organization color switcher
 const orgColors = {
     'AMI': {
@@ -2371,6 +2455,7 @@ window.addEventListener('organizationChanged', (e) => {
         applyOrgColors(e.detail.org);
     }
 });
+
 // Password protection for each organization
 const orgPasswords = {
     'AMI': 'ami27',
@@ -2917,11 +3002,9 @@ window.applyOrgColors = function(org) {
     }
 };
 
-// ===================== FIREBASE INTEGRATION FOR REPORT.HTML =====================
-
 // Save keterangan to Firebase
 function saveKeterangan(name, keterangan) {
-    const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
+    const data = JSON.parse(localStorage.getItem('spreadsheetData') || '{}');
     if (!data[name]) {
         data[name] = {};
     }
@@ -2942,7 +3025,7 @@ async function loadSignaturesAndKeterangan() {
     if (window.dbManager) {
         data = await window.dbManager.loadSignatures();
     } else {
-        data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
+        data = JSON.parse(localStorage.getItem('spreadsheetData') || {});
     }
     
     console.log('report.js: Loading signatures,', Object.keys(data).length, 'entries found');
@@ -3015,7 +3098,7 @@ async function loadSignaturesAndKeterangan() {
 
 // Delete signature from Firebase
 async function deleteSignature(name) {
-    const data = JSON.parse(localStorage.getItem('spreadsheetData')) || {};
+    const data = JSON.parse(localStorage.getItem('spreadsheetData') || '{}');
     const key = Object.keys(data).find(k => k.toLowerCase() === name.toLowerCase());
     
     if (key && data[key]) {
@@ -3130,6 +3213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
     }, 1500);
 });
+
 // Initialize Firebase integration for report.html
 document.addEventListener('DOMContentLoaded', () => {
     // ... existing code ...
@@ -3179,7 +3263,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
-// Di bagian JavaScript report.html, tambahkan:
 
 // Real-time signature updates
 window.addEventListener('firebaseSignaturesUpdate', (event) => {
@@ -3266,10 +3349,7 @@ window.addEventListener('syncDataUpdate', (event) => {
     }
 });
 
-// ======================
 // FORCE PASSWORD FOR AMI
-// ======================
-
 // Function untuk handle modal organisasi awal
 function initializeOrganizationSelection() {
     const orgModal = document.getElementById('orgModal');
@@ -3317,6 +3397,74 @@ function initializeOrganizationSelection() {
         }, 1000);
     }
 }
+
+// Panggil fungsi ini
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initializeOrganizationSelection, 500);
+});
+
+// Listen untuk organization change dari dropdown
+document.addEventListener('DOMContentLoaded', () => {
+    const changeOrgItem = document.getElementById('change-org-item');
+    const orgChangeModal = document.getElementById('orgChangeModal');
+    
+    if (changeOrgItem && orgChangeModal) {
+        changeOrgItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Tutup dropdown jika terbuka
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            if (dropdownMenu) {
+                dropdownMenu.style.display = 'none';
+            }
+            
+            // Tampilkan modal change organization
+            orgChangeModal.classList.add('show');
+            document.body.classList.add('modal-open');
+        });
+    }
+    
+    // Handle tombol di orgChangeModal
+    const orgChangeButtons = document.querySelectorAll('#orgChangeModal .org-change-btn');
+    orgChangeButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const org = this.getAttribute('data-org');
+            const currentOrg = localStorage.getItem('selectedOrganization');
+            
+            // Jika sama dengan organisasi saat ini, cukup tutup
+            if (currentOrg === org) {
+                orgChangeModal.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                return;
+            }
+            
+         
+                    // Untuk SEMUA organisasi termasuk AMI, show password modal
+                    if (typeof window.passProtectShowModal === 'function') {
+                        // Tutup modal organisasi
+                        orgModal.classList.remove('show');
+                        body.classList.remove('modal-open');
+                        
+                        // Tampilkan modal password setelah delay
+                        setTimeout(() => {
+                            window.passProtectShowModal(org);
+                        }, 300);
+                    } else {
+                        // Fallback jika sistem password tidak tersedia
+                        localStorage.setItem('selectedOrganization', org);
+                        orgModal.classList.remove('show');
+                        body.classList.remove('modal-open');
+                        
+                        // Reload untuk apply colors
+                        setTimeout(() => location.reload(), 500);
+                    }
+                });
+            });
+        }, 1000);
 
 // Panggil fungsi ini
 document.addEventListener('DOMContentLoaded', () => {
